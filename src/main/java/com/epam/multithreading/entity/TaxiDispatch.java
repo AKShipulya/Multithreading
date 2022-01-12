@@ -79,7 +79,6 @@ public class TaxiDispatch {
         }
     }
 
-
     public void releaseCar(Car car) {
         try {
             CAR_LOCK.lock();

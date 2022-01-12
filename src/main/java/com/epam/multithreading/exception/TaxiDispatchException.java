@@ -1,6 +1,6 @@
 package com.epam.multithreading.exception;
 
-public class TaxiDispatchException extends Exception{
+public class TaxiDispatchException extends Exception {
 
     public TaxiDispatchException(String message) {
         super(message);

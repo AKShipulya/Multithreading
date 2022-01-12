@@ -4,15 +4,11 @@ import com.epam.multithreading.exception.ParserException;
 import com.epam.multithreading.parser.Parser;
 import com.epam.multithreading.parser.impl.ParserImpl;
 import com.epam.multithreading.store.CustomersStore;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Main {
-    private static final Logger LOGGER = LogManager.getLogger();
-
     private static final String JSON_FILE_PATH = "src/test/resources/customers.json";
 
     public static void main(String[] args) throws ParserException {

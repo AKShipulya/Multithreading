@@ -16,9 +16,9 @@ public class Customer implements Runnable {
         BEFORE_START, IN_PROGRESS, COMPLETE
     }
 
-       /*
-    Default constructor is required for JSON file parsing
-     */
+    /*
+ Default constructor is required for JSON file parsing
+  */
     public Customer() {
     }
 

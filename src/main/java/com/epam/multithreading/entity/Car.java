@@ -24,9 +24,9 @@ public class Car {
             Thread.currentThread().interrupt();
         }
         TaxiDispatch dispatch = TaxiDispatch.getInstance();
-                dispatch.createOrder();
-                dispatch.deleteOrder();
-            LOGGER.info("Car {} ends ride for customer {}", id, customer.getId());
+        dispatch.createOrder();
+        dispatch.deleteOrder();
+        LOGGER.info("Car {} ends ride for customer {}", id, customer.getId());
     }
 
     public int getId() {

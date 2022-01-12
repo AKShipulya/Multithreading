@@ -13,10 +13,6 @@ public class Customer implements Runnable {
     @JsonProperty
     private int id;
 
-    public enum TaskState {
-        BEFORE_START, IN_PROGRESS, COMPLETE
-    }
-
     /*
  Default constructor is required for JSON file parsing
   */
@@ -51,9 +47,7 @@ public class Customer implements Runnable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         Customer customer = (Customer) o;
-
         if (id != customer.id) {
             return false;
         }
@@ -69,10 +63,10 @@ public class Customer implements Runnable {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Customer{");
-        sb.append("name='").append(name).append('\'');
-        sb.append(", id=").append(id);
-        sb.append('}');
-        return sb.toString();
+        final StringBuilder stringBuilder = new StringBuilder("Customer{");
+        stringBuilder.append("name='").append(name).append('\'');
+        stringBuilder.append(", id=").append(id);
+        stringBuilder.append('}');
+        return stringBuilder.toString();
     }
 }

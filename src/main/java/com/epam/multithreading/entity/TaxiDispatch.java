@@ -1,8 +1,6 @@
 package com.epam.multithreading.entity;
 
 import com.epam.multithreading.exception.TaxiDispatchException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -14,7 +12,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class TaxiDispatch {
-    private static final Logger LOGGER = LogManager.getLogger();
     private static final String RESOURCES_FILE_NAME = "dispatchHub";
     private static final String DISPATCHER_CARS_NUMBER_KEY = "dispatcher.carsNumber";
     private static final String DISPATCHER_POSSIBLE_ORDERS_CAPACITY_KEY = "dispatcher.ordersCapacity";
@@ -68,25 +65,20 @@ public class TaxiDispatch {
     public Car obtainAvailableCar() throws TaxiDispatchException {
         try {
             semaphore.acquire();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        try {
             CAR_LOCK.lock();
-            try {
-                while (availableCars.isEmpty()) {
-                    carCondition.await();
-                }
-            } catch (InterruptedException exception) {
-                throw new TaxiDispatchException("Error while car obtaining ", exception);
+            while (availableCars.isEmpty()) {
+                carCondition.await();
             }
             Car car = availableCars.removeLast();
             unavailableCars.addLast(car);
             return car;
+        } catch (InterruptedException exception) {
+            throw new TaxiDispatchException("Error while car obtaining ", exception);
         } finally {
             CAR_LOCK.unlock();
         }
     }
+
 
     public void releaseCar(Car car) {
         try {

@@ -8,42 +8,42 @@ import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Properties;
+import java.util.ResourceBundle;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class TaxiDispatch {
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final String RESOURCES_FILE_NAME = "dispatchHub";
+    private static final String DISPATCHER_CAPACITY_KEY = "dispatcher.capacity";
+    private static final String DISPATCHER_CARS_NUMBER_KEY = "dispatcher.carsNumber";
+    private static final String DISPATCHER_ORDERS_KEY = "dispatcher.orders";
+    private static final Lock LOCK = new ReentrantLock();
+    private static final AtomicBoolean CREATED = new AtomicBoolean(false);
 
-    private static final String FILE_PATH = "files/dispatch_hub.txt";
-    private static final ReentrantLock lock = new ReentrantLock();
-    private static final AtomicBoolean created = new AtomicBoolean(false);
     private static TaxiDispatch instance;
-    private final ReentrantLock orderLock = new ReentrantLock(true);
-    private final ReentrantLock carLock = new ReentrantLock(true);
+
+    private final Semaphore semaphore = new Semaphore(3);
+    private final Lock orderLock = new ReentrantLock();
+    private final Lock carLock = new ReentrantLock();
     private final Condition carCondition = carLock.newCondition();
     private final Condition placeOrder = orderLock.newCondition();
     private final Condition deleteOrder = orderLock.newCondition();
     private final Deque<Car> availableCars;
     private final Deque<Car> unavailableCars;
-    private final int ordersCapacity;
-    private final int carNumber;
+
+    private int ordersCapacity;
+    private int carNumber;
     private int currentOrderNumber;
 
     private TaxiDispatch() {
-        InputStream propertyFileStream = getClass().getClassLoader().getResourceAsStream(FILE_PATH);
-        Properties properties = new Properties();
-        try {
-            properties.load(propertyFileStream);
-        } catch (IOException exception) {
-            LOGGER.warn("Input stream is invalid");
-        }
-        String capacity = properties.getProperty(TaxiDispatchParameters.CAPACITY.toString());
-        String carNum = properties.getProperty(TaxiDispatchParameters.CAR_NUM.toString());
-        String orderNumber = properties.getProperty(TaxiDispatchParameters.ORDERS.toString());
-        ordersCapacity = Integer.parseInt(capacity);
-        this.carNumber = Integer.parseInt(carNum);
-        currentOrderNumber = Integer.parseInt(orderNumber);
+        ResourceBundle bundle = ResourceBundle.getBundle(RESOURCES_FILE_NAME);
+        this.ordersCapacity = Integer.parseInt(bundle.getString(DISPATCHER_CAPACITY_KEY));
+        this.carNumber = Integer.parseInt(bundle.getString(DISPATCHER_CARS_NUMBER_KEY));
+        this.currentOrderNumber = Integer.parseInt(bundle.getString(DISPATCHER_ORDERS_KEY));
         availableCars = new ArrayDeque<>();
         unavailableCars = new ArrayDeque<>();
         for (int i = 0; i < this.carNumber; i++) {
@@ -52,33 +52,26 @@ public class TaxiDispatch {
     }
 
     public static TaxiDispatch getInstance() {
-        if (!created.get()) {
+        if (!CREATED.get()) {
             try {
-                lock.lock();
+                LOCK.lock();
                 if (instance == null) {
                     instance = new TaxiDispatch();
-                    created.set(true);
+                    CREATED.set(true);
                 }
             } finally {
-                lock.unlock();
+                LOCK.unlock();
             }
         }
         return instance;
     }
 
-    public int getCarNumber() {
-        return carNumber;
-    }
-
-    public int getOrdersCapacity() {
-        return ordersCapacity;
-    }
-
-    public int getCurrentOrderNumber() {
-        return currentOrderNumber;
-    }
-
     public Car obtainAvailableCar() {
+        try {
+            semaphore.acquire();
+        } catch (InterruptedException exception) {
+            exception.printStackTrace();
+        }
         try {
             carLock.lock();
             try {
@@ -103,6 +96,7 @@ public class TaxiDispatch {
             unavailableCars.remove(car);
             availableCars.addLast(car);
             carCondition.signal();
+            semaphore.release();
         } finally {
             carLock.unlock();
         }

@@ -1,0 +1,44 @@
+{
+  "customers": [
+    {
+      "name": "Eddard Stark",
+      "id": 1
+    },
+    {
+      "name": "Robert Baratheon",
+      "id": 2
+    },
+    {
+      "name": "Jaime Lannister",
+      "id": 3
+    },
+    {
+      "name": "Daenerys Targaryen",
+      "id": 4
+    },
+    {
+      "name": "Jon Snow",
+      "id": 5
+    },
+    {
+      "name": "Sansa Stark",
+      "id": 6
+    },
+    {
+      "name": "Joffrey Baratheon",
+      "id": 7
+    },
+    {
+      "name": "Cersei Lannister",
+      "id": 8
+    },
+    {
+      "name": "Tyrion Lannister",
+      "id": 9
+    },
+    {
+      "name": "Ramsay Bolton",
+      "id": 10
+    }
+  ]
+}

@@ -1,3 +1,0 @@
-CAR_NUM = 7
-CAPACITY = 5
-ORDERS = 3

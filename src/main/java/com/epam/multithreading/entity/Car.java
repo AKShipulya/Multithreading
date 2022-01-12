@@ -1,5 +1,6 @@
 package com.epam.multithreading.entity;
 
+import com.epam.multithreading.exception.TaxiDispatchException;
 import com.epam.multithreading.util.CarIdGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,13 +16,13 @@ public class Car {
         id = CarIdGenerator.getCarId();
     }
 
-    public void processRide(Customer customer) {
+    public void processRide(Customer customer) throws TaxiDispatchException {
         LOGGER.info("Car {} starts ride for customer {}", id, customer.getId());
         try {
-            TimeUnit.MILLISECONDS.sleep(100); //ride progress...
+            TimeUnit.SECONDS.sleep(1); //ride progress...
+            LOGGER.info("Car {} makes a ride for customer {}...", id, customer.getId());
         } catch (InterruptedException exception) {
-            LOGGER.info("Error while processing ride ", exception);
-            Thread.currentThread().interrupt();
+            throw new TaxiDispatchException("Error while processing ride ", exception);
         }
         TaxiDispatch dispatch = TaxiDispatch.getInstance();
         dispatch.createOrder();

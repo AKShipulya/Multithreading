@@ -16,7 +16,7 @@
                      filePattern="logs/${date:yyyy-MM-dd}/%d{yyyy-MM-dd_HH-mm}.txt">
             <PatternLayout pattern="${property_file}"/>
             <Policies>
-                <SizeBasedTriggeringPolicy size="10"/>
+                <SizeBasedTriggeringPolicy size="100 KB"/>
             </Policies>
             <DefaultRolloverStrategy max="5"/>
         </RollingFile>

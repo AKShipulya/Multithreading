@@ -1,5 +1,6 @@
 package com.epam.multithreading.entity;
 
+import com.epam.multithreading.exception.TaxiDispatchException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,35 +16,36 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TaxiDispatch {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final String RESOURCES_FILE_NAME = "dispatchHub";
-    private static final String DISPATCHER_CAPACITY_KEY = "dispatcher.capacity";
     private static final String DISPATCHER_CARS_NUMBER_KEY = "dispatcher.carsNumber";
+    private static final String DISPATCHER_POSSIBLE_ORDERS_CAPACITY_KEY = "dispatcher.ordersCapacity";
     private static final String DISPATCHER_ORDERS_KEY = "dispatcher.orders";
     private static final Lock LOCK = new ReentrantLock();
+    private static final Lock CAR_LOCK = new ReentrantLock();
+    private static final Lock ORDER_LOCK = new ReentrantLock();
     private static final AtomicBoolean CREATED = new AtomicBoolean(false);
 
     private static TaxiDispatch instance;
 
-    private final Semaphore semaphore = new Semaphore(3);
-    private final Lock orderLock = new ReentrantLock();
-    private final Lock carLock = new ReentrantLock();
-    private final Condition carCondition = carLock.newCondition();
-    private final Condition placeOrder = orderLock.newCondition();
-    private final Condition deleteOrder = orderLock.newCondition();
+    private final Condition carCondition = CAR_LOCK.newCondition();
+    private final Condition placeOrder = ORDER_LOCK.newCondition();
+    private final Condition deleteOrder = ORDER_LOCK.newCondition();
     private final Deque<Car> availableCars;
     private final Deque<Car> unavailableCars;
+    private final int initialCarsNumber;
+    private final int possibleOrdersCapacity;
+    private final Semaphore semaphore;
 
-    private int ordersCapacity;
-    private int carNumber;
     private int currentOrderNumber;
 
     private TaxiDispatch() {
         ResourceBundle bundle = ResourceBundle.getBundle(RESOURCES_FILE_NAME);
-        this.ordersCapacity = Integer.parseInt(bundle.getString(DISPATCHER_CAPACITY_KEY));
-        this.carNumber = Integer.parseInt(bundle.getString(DISPATCHER_CARS_NUMBER_KEY));
+        possibleOrdersCapacity = Integer.parseInt(bundle.getString(DISPATCHER_POSSIBLE_ORDERS_CAPACITY_KEY));
+        initialCarsNumber = Integer.parseInt(bundle.getString(DISPATCHER_CARS_NUMBER_KEY));
         this.currentOrderNumber = Integer.parseInt(bundle.getString(DISPATCHER_ORDERS_KEY));
+        semaphore = new Semaphore(possibleOrdersCapacity);
         availableCars = new ArrayDeque<>();
         unavailableCars = new ArrayDeque<>();
-        for (int i = 0; i < this.carNumber; i++) {
+        for (int i = 0; i < this.initialCarsNumber; i++) {
             availableCars.addLast(new Car());
         }
     }
@@ -63,75 +65,72 @@ public class TaxiDispatch {
         return instance;
     }
 
-    public Car obtainAvailableCar() {
+    public Car obtainAvailableCar() throws TaxiDispatchException {
         try {
             semaphore.acquire();
-        } catch (InterruptedException exception) {
-            exception.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         try {
-            carLock.lock();
+            CAR_LOCK.lock();
             try {
                 while (availableCars.isEmpty()) {
                     carCondition.await();
                 }
             } catch (InterruptedException exception) {
-                LOGGER.error("Error while car obtaining ", exception);
-                Thread.currentThread().interrupt();
+                throw new TaxiDispatchException("Error while car obtaining ", exception);
             }
             Car car = availableCars.removeLast();
             unavailableCars.addLast(car);
             return car;
         } finally {
-            carLock.unlock();
+            CAR_LOCK.unlock();
         }
     }
 
     public void releaseCar(Car car) {
         try {
-            carLock.lock();
+            CAR_LOCK.lock();
             unavailableCars.remove(car);
             availableCars.addLast(car);
             carCondition.signal();
             semaphore.release();
         } finally {
-            carLock.unlock();
+            CAR_LOCK.unlock();
         }
     }
 
-    public void createOrder() {
+    public void createOrder() throws TaxiDispatchException {
         try {
-            orderLock.lock();
+            ORDER_LOCK.lock();
             try {
-                while (currentOrderNumber == ordersCapacity) {
+                while (currentOrderNumber == possibleOrdersCapacity) {
                     placeOrder.await();
                 }
             } catch (InterruptedException exception) {
-                LOGGER.error("Error while orders processing ", exception);
-                Thread.currentThread().interrupt();
+                throw new TaxiDispatchException("Error while orders processing ", exception);
             }
             currentOrderNumber++;
             deleteOrder.signal();
         } finally {
-            orderLock.unlock();
+            ORDER_LOCK.unlock();
         }
     }
 
-    public void deleteOrder() {
+    public void deleteOrder() throws TaxiDispatchException {
         try {
-            orderLock.lock();
+            ORDER_LOCK.lock();
             try {
                 while (currentOrderNumber == 0) {
                     deleteOrder.await();
                 }
             } catch (InterruptedException exception) {
-                LOGGER.error("Error while orders processing ", exception);
-                Thread.currentThread().interrupt();
+                throw new TaxiDispatchException("Error while orders processing ", exception);
             }
             currentOrderNumber--;
             placeOrder.signal();
         } finally {
-            orderLock.unlock();
+            ORDER_LOCK.unlock();
         }
     }
 }

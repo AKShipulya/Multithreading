@@ -1,5 +1,6 @@
 package com.epam.multithreading.entity;
 
+import com.epam.multithreading.exception.TaxiDispatchException;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,13 +25,18 @@ public class Customer implements Runnable {
 
     @Override
     public void run() {
-        LOGGER.info("Customer {} placed order for a ride", id);
-        TaxiDispatch dispatch = TaxiDispatch.getInstance();
-        Car car = dispatch.obtainAvailableCar();
-        LOGGER.info("Customer #{} get car #{}", id, car.getId());
-        car.processRide(this);
-        dispatch.releaseCar(car);
-        LOGGER.info("Ride {} is completed", id);
+        LOGGER.info("Customer id {}: {} placed an order for a ride", id, name);
+        try {
+            TaxiDispatch dispatch = TaxiDispatch.getInstance();
+            Car car = dispatch.obtainAvailableCar();
+            LOGGER.info("Customer id {} get car #{}", id, car.getId());
+            car.processRide(this);
+            dispatch.releaseCar(car);
+            LOGGER.info("Ride for customer id {} is completed", id);
+        } catch (TaxiDispatchException exception) {
+            LOGGER.warn("Ride processing error {}", exception.getMessage());
+            Thread.currentThread().interrupt();
+        }
     }
 
     public int getId() {

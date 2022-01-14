@@ -6,15 +6,9 @@ import com.epam.multithreading.parser.impl.ParserImpl;
 import com.epam.multithreading.store.CustomersStore;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import java.util.Arrays;
 import java.util.List;
-
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Mockito.when;
 
 public class ParserImplTest {
 

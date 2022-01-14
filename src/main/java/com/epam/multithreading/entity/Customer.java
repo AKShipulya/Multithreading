@@ -14,11 +14,14 @@ public class Customer implements Runnable {
     private int id;
 
     /*
- Default constructor is required for JSON file parsing
-  */
+     Default constructor is required for JSON file parsing
+     */
     public Customer() {
     }
 
+    /*
+    Constructor for the test
+     */
     public Customer(String name, int id) {
         this.name = name;
         this.id = id;

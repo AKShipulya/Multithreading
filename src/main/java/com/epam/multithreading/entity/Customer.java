@@ -19,6 +19,11 @@ public class Customer implements Runnable {
     public Customer() {
     }
 
+    public Customer(String name, int id) {
+        this.name = name;
+        this.id = id;
+    }
+
     @Override
     public void run() {
         LOGGER.info("Customer id {}: {} placed an order for a ride", id, name);

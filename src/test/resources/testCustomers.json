@@ -1,0 +1,12 @@
+{
+  "customers": [
+    {
+      "name": "Eddard Stark",
+      "id": 1
+    },
+    {
+      "name": "Robert Baratheon",
+      "id": 2
+    }
+  ]
+}

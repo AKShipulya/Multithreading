@@ -2,6 +2,8 @@ package com.epam.multithreading.parser;
 
 import com.epam.multithreading.entity.Customer;
 import com.epam.multithreading.exception.ParserException;
+
+import com.epam.multithreading.parser.Parser;
 import com.epam.multithreading.parser.impl.ParserImpl;
 import com.epam.multithreading.store.CustomersStore;
 import org.junit.Assert;

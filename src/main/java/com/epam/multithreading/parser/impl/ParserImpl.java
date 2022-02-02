@@ -15,12 +15,11 @@ public class ParserImpl implements Parser {
 
     public CustomersStore parse(String filePath) {
         CustomersStore customers = new CustomersStore();
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonParser jsonParser = mapper.createParser(new File(filePath));
+        ObjectMapper mapper = new ObjectMapper();
+        try (JsonParser jsonParser = mapper.createParser(new File(filePath))) {
             customers = jsonParser.readValueAs(CustomersStore.class);
         } catch (IOException exception) {
-            LOGGER.warn("Error during file parsing: " + filePath, exception);
+            LOGGER.warn(String.format("Error during the file parsing: %s", filePath), exception);
         }
         return customers;
     }

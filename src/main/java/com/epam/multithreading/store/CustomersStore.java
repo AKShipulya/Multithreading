@@ -10,8 +10,8 @@ public class CustomersStore {
     @JsonProperty
     private List<Customer> customers;
 
-    /*
-    Default constructor is required for JSON file parsing
+    /**
+     * Default constructor required for JSON file parsing
      */
     public CustomersStore() {
     }
